@@ -4,11 +4,10 @@ ThisBuild / scalaVersion := "2.13.8"
 
 name := "zio-sandbox"
 
-val zioVersion = "1.0.13"
+val zioVersion = "2.0.0-RC4"
 
 libraryDependencies ++= Seq(
   "dev.zio" %% "zio" % zioVersion,
-  "org.scalatest" %% "scalatest" % "3.2.11" % Test,
   "dev.zio" %% "zio-test"     % zioVersion % Test,
   "dev.zio" %% "zio-test-sbt" % zioVersion % Test
 )

@@ -4,22 +4,16 @@ import zio._
 
 import scala.io.AnsiColor._
 
-object UserEmailer {
-  type UserEmailerEnv = Has[UserEmailer.Service]
+trait UserEmailer {
+  def notify(user: User, message: String): Task[Unit]
+}
 
-  trait Service {
-    def notify(user: User, message: String): Task[Unit]
-  }
+final case class UserEmailerLive() extends UserEmailer {
+  def notify(user: User, message: String): Task[Unit] =
+    Task(println(s"${GREEN}${user.name}${RESET} ${message}"))
+}
 
-
-  val live: ZLayer[Any, Nothing, UserEmailerEnv] = ZLayer.succeed(new Service {
-    override def notify(user: User, message: String): Task[Unit] =
-      Task {
-        println(s"${RED}[Email Service]${RESET} sending $message to ${user.email}")
-      }
-  })
-
-  // front facing API
-  def notify(user: User, msg: String): ZIO[UserEmailerEnv, Throwable, Unit] =
-    ZIO.accessM(_.get.notify(user, msg))
+object UserEmailer extends Accessible[UserEmailer] {
+  val live = ZLayer(ZIO.succeed(UserEmailerLive()))
+//  val live = ZLayer.fromService[Any, UserEmailer](_ => UserEmailerLive())
 }

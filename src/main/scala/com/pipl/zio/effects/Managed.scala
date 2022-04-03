@@ -2,13 +2,13 @@ package com.pipl.zio.effects
 
 import zio._
 
-object Managed extends zio.App {
+object Managed extends ZIOAppDefault {
   def three() = {
     println("I'm 3")
     3
   }
 
-  val task = ZIO.effect( three() )
+  val task = ZIO.attempt( three() )
 
 
   val result = for {
@@ -19,6 +19,6 @@ object Managed extends zio.App {
   println(task, task)
 
 
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] =
+  val run =
     result.exitCode
 }

@@ -1,14 +1,12 @@
 package com.pipl.zio
 
 import zio.test.Assertion._
-import zio.test.environment._
-import zio.duration._
-import zio.random
+import zio.Random
 import zio.test._
 
-object GreetSpec extends DefaultRunnableSpec {
-  override def spec: ZSpec[_root_.zio.test.environment.TestEnvironment, Any] = suite("GreeterSpec") (
-    testM("should greet user") {
+object GreetSpec extends ZIOSpecDefault {
+  override def spec: ZSpec[_root_.zio.test.TestEnvironment, Any] = suite("GreeterSpec") (
+    test("should greet user") {
       val app = for {
         _    <- TestConsole.feedLines("Matan")
         name <- Greet.greetingZio
@@ -19,12 +17,12 @@ object GreetSpec extends DefaultRunnableSpec {
       assertM(app)(equalTo("Matan"))
     },
 
-    testM("should test random") {
+    test("should test random") {
       for {
         _  <- TestRandom.feedInts(1, 4, 8, 16)
-        r1 <- random.nextInt
-        r2 <- random.nextInt
-        r3 <- random.nextInt
+        r1 <- Random.nextInt
+        r2 <- Random.nextInt
+        r3 <- Random.nextInt
       } yield
         assert(List(r1,r2,r3))(equalTo(List[Int]( elems =
           1, 4, 8,

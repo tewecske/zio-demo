@@ -4,16 +4,14 @@ import zio._
 
 // https://blog.rockthejvm.com/structuring-services-with-zio-zlayer/
 
-object ZLayerMain extends zio.App {
-  override def run(args: List[String]): URIO[zio.ZEnv, ExitCode] = {
-    val userRegistrationLayer = (UserDB.live ++ UserEmailer.live) >>> UserSubscription.live
-
-    UserSubscription.subscribe(User("matan.keidar", "matan.keidar@pipl.com"))
-      .provideLayer(userRegistrationLayer)
+object ZLayerMain extends ZIOAppDefault {
+  val run = {
+    UserSubscription(_.subscribe(User("matan.keidar", "matan.keidar@pipl.com")))
       .catchAll(t => ZIO.succeed(t.printStackTrace()).map(_ => ExitCode.failure))
       .map { u =>
         println(s"Registered user: $u")
         ExitCode.success
       }
+      .provide(UserDB.live, UserEmailer.live, UserSubscription.live)
   }
 }

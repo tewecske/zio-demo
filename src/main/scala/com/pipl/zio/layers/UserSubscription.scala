@@ -2,25 +2,26 @@ package com.pipl.zio.layers
 
 import zio._
 
-object UserSubscription {
-  import UserEmailer._
-  import UserDB._
+trait UserSubscription {
+  def subscribe(user: User): Task[User]
+}
 
-  type UserSubscriptionEnv = Has[UserSubscription.Service]
+final case class UserSubscriptionLive(notifier: UserEmailer, userModel: UserDB) extends UserSubscription {
+  override def subscribe(user: User): Task[User] =
+    for {
+      _ <- userModel.insert(user)
+      _ <- notifier.notify(user, s"Welcome ${user.name} to ZIO demo")
+    } yield user
+}
 
-  class Service(notifier: UserEmailer.Service, userModel: UserDB.Service) {
-    def subscribe(user: User): Task[User] =
-      for {
-        _ <- userModel.insert(user)
-        _ <- notifier.notify(user, s"Welcome ${user.name} to ZIO demo")
-      } yield user
+object UserSubscription extends Accessible[UserSubscription] {
+  val live = ZLayer{
+    for {
+      notifier <- ZIO.service[UserEmailer]
+      userModel <- ZIO.service[UserDB]
+    } yield UserSubscriptionLive(notifier, userModel)
   }
 
-  val live: ZLayer[UserEmailerEnv with UserDbEnv, Nothing, UserSubscriptionEnv] =
-    ZLayer.fromServices[UserEmailer.Service, UserDB.Service, UserSubscription.Service] {
-      (emailer, db) => new Service(emailer, db)
-    }
-
-  // accessor
-  def subscribe(user: User): ZIO[UserSubscriptionEnv, Throwable, User] = ZIO.accessM(_.get.subscribe(user))
+/*  def subscribe(user: User) =
+    ZIO.serviceWithZIO[UserSubscription](_.subscribe(user))*/
 }
